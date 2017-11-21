@@ -42,7 +42,12 @@ defmodule Recur do
     do: raise ArgumentError, message: "by_week_no is not currently supported."
 
   def unfold(%{start_date: start_date} = rules) do
-    rules = if Map.has_key?(rules, :week_start), do: rules, else: Map.put(rules, :week_start, :monday)
+    rules =
+      if Map.has_key?(rules, :week_start) do
+        rules
+      else
+        Map.put(rules, :week_start, :monday)
+      end
 
     rules
     |> frequency()
@@ -52,6 +57,12 @@ defmodule Recur do
     |> Stream.reject(& Date.compare(&1, start_date) == :lt)
     |> terminate(rules)
     |> prime(start_date)
+  end
+
+  def take(rules, count) do
+    rules
+    |> unfold()
+    |> Enum.take(count)
   end
 
   def prime(dates, start_date) do
@@ -112,7 +123,7 @@ defmodule Recur do
     )
   end
 
-  def by_set_position(dates, %{frequency: frequency, by_set_position: positions, week_start: week_start} = rules) do
+  def by_set_position(dates, %{frequency: frequency, by_set_position: positions, week_start: week_start}) do
     dates
     |> Stream.chunk_by(chunk_func(frequency, week_start))
     |> Stream.flat_map(& positions |> Enum.map(fn position -> get_position(&1, position) end))

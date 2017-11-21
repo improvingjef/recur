@@ -70,7 +70,7 @@ defmodule Recur.Week do
     days_in_month_for(date, {which, Day.of_week(day, week_start)}, week_start)
   end
 
-  def days_in_month_for(date, {which, day} = which_day_of_month, week_start)
+  def days_in_month_for(date, {which, day}, week_start)
     when is_integer(which) and is_integer(day) and which < 0 do
     found =
     date
@@ -81,7 +81,7 @@ defmodule Recur.Week do
     if is_nil(found), do: [], else: [found]
   end
 
-  def days_in_month_for(date, {which, day} = which_day_of_month, week_start)
+  def days_in_month_for(date, {which, day}, week_start)
     when is_integer(which) and is_integer(day) and which > 0 do
     found =
     date
@@ -117,7 +117,7 @@ defmodule Recur.Week do
     when is_integer(which) and is_atom(day),
     do: day_for(date, {which, Day.of_week(day, week_start)}, week_start)
 
-  def day_for(date, {which, day} = which_day_of_week, week_start)
+  def day_for(date, {_which, day} = which_day_of_week, week_start)
     when is_integer(day) do
     date
     |> days_in_month_for(which_day_of_week, week_start)
