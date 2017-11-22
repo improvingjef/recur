@@ -1,5 +1,7 @@
 defmodule Recur.Day do
 
+  alias Recur.Days
+
   @week_days %{monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 7}
 
   def of_week(day, week_start) when is_atom(day) do
@@ -40,6 +42,49 @@ defmodule Recur.Day do
     of_week(date, week_start) == of_week(day_of_week, week_start)
   end
 
-  def which_day(which, date) when which > 0, do: date.day
-  def which_day(which, date) when which < 0, do: (Date.days_in_month(date) + 1 - date.day) * -1
+  def which_day(which, date) when which > 0,
+    do: date.day
+
+  def which_day(which, date) when which < 0,
+    do: (Date.days_in_month(date) + 1 - date.day) * -1
+
+  def for(date, which, _week_start)
+    when is_integer(which) and which < 0 do
+    [%{date | day: Date.days_in_month(date) + 1 - which}]
+  end
+
+  def for(date, which, _week_start)
+    when is_integer(which) and which > 0 do
+    [%{date | day: which}]
+  end
+
+  def for(date, {which, day}, week_start)
+    when is_integer(which) and is_atom(day),
+    do: __MODULE__.for(date, {which, of_week(day, week_start)}, week_start)
+
+  def for(date, {_which, day} = which_day_of_week, week_start)
+    when is_integer(day) do
+    date
+    |> Days.in_month_for(which_day_of_week, week_start)
+    |> Enum.at(0)
+  end
+
+  def for(date, day, week_start) when is_atom(day) do
+    dow1 = of_week(date, week_start)
+    dow2 = of_week(day, week_start)
+    Date.add(date, dow2 - dow1)
+  end
+
+  def of_year(date) do
+    jan1 = %{date | month: 1, day: 1}
+    case date.month do
+      1 -> date.day
+      _ ->
+        1..(date.month-1)
+        |> Enum.map(&(%{ date | month: &1, day: 1}))
+        |> Enum.map(&(Date.days_in_month(&1)))
+        |> Enum.concat([date.day])
+        |> Enum.sum()
+    end
+  end
 end

@@ -90,4 +90,14 @@ defmodule DayTest do
       |> Enum.map(&Day.which_day(-1, &1))
       |> Enum.to_list()
   end
+
+  test "Day.for which and dow" do
+    assert ~D[2017-01-01] == Day.for(~D[2017-01-01], {1, :sunday}, :monday)
+    assert ~D[2017-01-02] == Day.for(~D[2017-01-01], {1, :monday}, :monday)
+    assert ~D[2017-01-03] == Day.for(~D[2017-01-01], {1, :tuesday}, :monday)
+    assert ~D[2017-01-04] == Day.for(~D[2017-01-01], {1, :wednesday}, :monday)
+    assert ~D[2017-01-05] == Day.for(~D[2017-01-01], {1, :thursday}, :monday)
+    assert ~D[2017-01-06] == Day.for(~D[2017-01-01], {1, :friday}, :monday)
+    assert ~D[2017-01-07] == Day.for(~D[2017-01-01], {1, :saturday}, :monday)
+  end
 end

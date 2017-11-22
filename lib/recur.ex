@@ -1,5 +1,5 @@
 defmodule Recur do
-  alias Recur.{Day, Week}
+  alias Recur.{Day, Days, Week}
   @moduledoc """
     Recur does not deal with recurrence for Hours, Minutes, and Seconds,
     so the following elements of the recurrence portion of the iCal spec
@@ -78,13 +78,7 @@ defmodule Recur do
   end
 
   def frequency(%{start_date: start_date, frequency: :monthly}) do
-    1..12
-    |> Stream.cycle()
-    |> Stream.drop(start_date.month-1)
-    |> chunk_cycle()
-    |> Stream.with_index()
-    |> Stream.flat_map(fn {months, year_offset} ->
-      Enum.map(months, fn month -> %{start_date | year: start_date.year + year_offset, month: month}  end) end)
+    monthly(start_date)
   end
 
   def frequency(%{start_date: start_date, frequency: :weekly}),
@@ -95,6 +89,16 @@ defmodule Recur do
 
   def frequency(%{frequency: frequency}),
     do: raise ArgumentError, "frequency #{frequency} is not supported."
+
+  def monthly(start_date) do
+    1..12
+    |> Stream.cycle()
+    |> Stream.drop(start_date.month-1)
+    |> chunk_cycle()
+    |> Stream.with_index()
+    |> Stream.flat_map(fn {months, year_offset} ->
+      Enum.map(months, fn month -> %{start_date | year: start_date.year + year_offset, month: month}  end) end)
+  end
 
   def interval(dates, %{interval: interval}), do: Stream.take_every(dates, interval)
   def interval(dates, _), do: dates
@@ -160,62 +164,68 @@ defmodule Recur do
 
   def by(date, :by_month, %{frequency: :yearly, by_month: months}) do
     months
+    |> wrap()
     |> Stream.map(&%{date | month: &1})
     |> Enum.sort(fn first, second -> Date.to_erl(first) < Date.to_erl(second) end)
   end
 
   def by(date, :by_month, %{frequency: frequency, by_month: months})
     when frequency in [:daily, :weekly, :monthly] do
-    if Enum.any?(months, & &1 == date.month), do: [date], else: []
+    if months |> wrap() |> Enum.any?(& &1 == date.month), do: [date], else: []
   end
 
   def by(date, :by_year_day, %{frequency: :yearly, by_year_day: days}) do
     days
+    |> wrap()
     |> Stream.map(&to_year_day(date, &1))
     |> Enum.sort(fn first, second -> Date.to_erl(first) < Date.to_erl(second) end)
   end
 
   def by(date, :by_month_day, %{frequency: :daily, by_month_day: days}) do
-    if Enum.any?(days, & &1 == date.day), do: [date], else: []
+    if days |> wrap() |> Enum.any?(& &1 == date.day), do: [date], else: []
   end
 
   def by(date, :by_month_day, %{frequency: frequency, by_month_day: days})
-    when frequency in [:monthly, :yearly] do
-    map_month_days(date, days)
+    when frequency in [:yearly, :monthly] do
+    map_month_days(date, days |> wrap())
   end
 
   def by(date, :by_day, %{frequency: :weekly, by_day: days, week_start: week_start}) do
     days
-    |> Stream.map(&Week.day_for(date, &1, week_start))
+    |> wrap()
+    |> Stream.map(&Day.for(date, &1, week_start))
     |> Enum.sort(fn first, second -> Date.to_erl(first) < Date.to_erl(second) end)
   end
 
   def by(date, :by_day, %{frequency: frequency, by_month_day: _, by_day: days, week_start: week_start})
-    when frequency in [:monthly, :yearly], do: limit(date, days, week_start)
+    when frequency in [:monthly, :yearly], do: limit(date, wrap(days), week_start)
 
   def by(date, :by_day, %{frequency: :monthly, by_day: days, week_start: week_start}) do
     days
-    |> Stream.flat_map(&Week.days_in_month_for(date, &1, week_start))
+    |> wrap()
+    |> Stream.flat_map(&Days.in_month_for(date, &1, week_start))
     |> Enum.sort(fn first, second -> Date.to_erl(first) < Date.to_erl(second) end)
   end
 
   def by(date, :by_day, %{frequency: :daily, by_day: days, week_start: week_start}) do
-    limit(date, days, week_start)
+    limit(date, wrap(days), week_start)
   end
 
   def by(date, :by_day, %{frequency: :yearly, by_month: _, by_day: days, week_start: week_start}) do
     days
-    |> Stream.flat_map(& Week.days_in_month_for(date, &1, week_start))
+    |> wrap()
+    |> Stream.flat_map(& Days.in_month_for(date, &1, week_start))
     |> Enum.sort(fn first, second -> Date.to_erl(first) < Date.to_erl(second) end)
   end
 
   def by(date, :by_day, %{frequency: :yearly, by_year_day: _, by_day: days, week_start: week_start}) do
-    limit(date, days, week_start)
+    limit(date, wrap(days), week_start)
   end
 
   def by(date, :by_day, %{frequency: :yearly, by_day: days, week_start: week_start}) do
     days
-    |> Stream.flat_map(& Week.days_in_year_for(date, &1, week_start))
+    |> wrap()
+    |> Stream.flat_map(& Days.in_year_for(date, &1, week_start))
     |> Enum.sort(fn first, second -> Date.to_erl(first) < Date.to_erl(second) end)
   end
 
@@ -250,4 +260,7 @@ defmodule Recur do
       %{date | month: 12, day: 31} |> Date.add(year_day + 1)
     end
   end
+
+  def wrap(value) when is_list(value), do: value
+  def wrap(value), do: [value]
 end

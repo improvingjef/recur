@@ -95,7 +95,7 @@ defmodule RecurTest do
           (2000 9:00 AM EDT)January 1-31
     """
     test "Everyday in January, for 3 years" do
-      result = RR.unfold(%{start_date: ~D[1998-01-01], frequency: :daily, until: ~D[2000-01-31], by_month: [1]})
+      result = RR.unfold(%{start_date: ~D[1998-01-01], frequency: :daily, until: ~D[2000-01-31], by_month: 1})
 
       expect = date_expand([
         {1998, 1, Enum.to_list(1..31)},
@@ -271,7 +271,7 @@ defmodule RecurTest do
         {1998,  6, 5},
       ])
 
-      result = RR.unfold(%{start_date: ~D[1997-09-05], frequency: :monthly, count: Enum.count(expect), by_day: [{1,:friday}]})
+      result = RR.unfold(%{start_date: ~D[1997-09-05], frequency: :monthly, count: Enum.count(expect), by_day: {1,:friday}})
       assert expect == result |> Enum.take(Enum.count(expect))
     end
 
@@ -292,7 +292,7 @@ defmodule RecurTest do
         {1997, 12, 5},
       ])
 
-      result = RR.unfold(%{start_date: ~D[1997-09-05], frequency: :monthly, until: ~D[1997-12-24], by_day: [{1,:friday}]})
+      result = RR.unfold(%{start_date: ~D[1997-09-05], frequency: :monthly, until: ~D[1997-12-24], by_day: {1,:friday}})
       assert expect == result |> Enum.take(Enum.count(expect))
     end
 
@@ -346,7 +346,7 @@ defmodule RecurTest do
         {1998,  2, 16},
       ])
 
-      result = RR.unfold(%{start_date: ~D[1997-09-22], frequency: :monthly, count: Enum.count(expect), by_day: [{-2,:monday}]})
+      result = RR.unfold(%{start_date: ~D[1997-09-22], frequency: :monthly, count: Enum.count(expect), by_day: {-2,:monday}})
       assert expect == result |> Enum.take(Enum.count(expect))
     end
 
@@ -371,7 +371,7 @@ defmodule RecurTest do
         {1998,  2, 26},
       ])
 
-      result = RR.unfold(%{start_date: ~D[1997-09-28], frequency: :monthly, by_month_day: [-3]})
+      result = RR.unfold(%{start_date: ~D[1997-09-28], frequency: :monthly, by_month_day: -3})
       assert expect == result |> Enum.take(Enum.count(expect))
     end
 
@@ -471,7 +471,7 @@ defmodule RecurTest do
         {1998,  3, [3,10,17,24,31]},
         ])
 
-        result = RR.unfold(%{start_date: ~D[1997-09-02], frequency: :monthly, interval: 2, by_day: [:tuesday]})
+        result = RR.unfold(%{start_date: ~D[1997-09-02], frequency: :monthly, interval: 2, by_day: :tuesday})
         assert expect == result |> Enum.take(Enum.count(expect))
     end
 
@@ -576,7 +576,7 @@ defmodule RecurTest do
         {1999, 5, 17},
         ])
       result =
-      RR.unfold(%{start_date: ~D[1997-05-19], frequency: :yearly, by_day: [{20,:monday}]})
+      RR.unfold(%{start_date: ~D[1997-05-19], frequency: :yearly, by_day: {20,:monday}})
       assert expect == result |> Enum.take(3)
     end
 
@@ -615,7 +615,7 @@ defmodule RecurTest do
       ])
 
       result =
-      RR.unfold(%{start_date: ~D[1997-03-13], frequency: :yearly, by_month: [3], by_day: [:thursday]})
+      RR.unfold(%{start_date: ~D[1997-03-13], frequency: :yearly, by_month: 3, by_day: :thursday})
       assert expect == result |> Enum.take(expect |> Enum.count)
     end
 
@@ -634,7 +634,7 @@ defmodule RecurTest do
       ...
     """
     test "Every Thursday, but only during June, July, and August, forever" do
-      result = RR.unfold(%{start_date: ~D[1997-06-05], frequency: :yearly, by_month: [6,7,8], by_day: [:thursday]})
+      result = RR.unfold(%{start_date: ~D[1997-06-05], frequency: :yearly, by_month: [6,7,8], by_day: :thursday})
 
       expect = date_expand([
         {1997, 6, Enum.to_list([5,12,19,26])},
@@ -665,6 +665,17 @@ defmodule RecurTest do
     """
 
     test "Every Friday the 13th, forever" do
+      expected = date_expand([
+        {1997,  9,  2}, # once I add exdate, then it should work as expected
+        {1998,  2, 13},
+        {1998,  3, 13},
+        {1998, 11, 13},
+        {1999,  8, 13},
+        {2000, 10, 13},
+        ])
+
+      results = RR.unfold(%{start_date: ~D[1997-09-02], frequency: :monthly, by_day: :friday, by_month_day: 13}) |> Enum.take(6)
+      assert expected == results
     end
 
     @doc """
