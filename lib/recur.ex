@@ -57,6 +57,7 @@ defmodule Recur do
     |> Stream.reject(& Date.compare(&1, start_date) == :lt)
     |> terminate(rules)
     |> prime(start_date)
+    |> exclude_dates(rules)
   end
 
   def take(rules, count) do
@@ -64,6 +65,21 @@ defmodule Recur do
     |> unfold()
     |> Enum.take(count)
   end
+
+  def exclude_dates(dates, %{exclude_date: to_exclude}) do
+    excluded =
+      to_exclude
+      |> wrap()
+      |> Enum.map(& to_date(&1))
+
+    dates
+    |> Stream.filter(& &1 not in excluded)
+  end
+
+  def exclude_dates(dates, _rules), do: dates
+
+  def to_date(d) when is_binary(d), do: Date.from_iso8601!(d)
+  def to_date(%Date{} = d), do: d
 
   def prime(dates, start_date) do
     if Enum.at(dates, 0) == start_date do

@@ -666,7 +666,6 @@ defmodule RecurTest do
 
     test "Every Friday the 13th, forever" do
       expected = date_expand([
-        {1997,  9,  2}, # once I add exdate, then it should work as expected
         {1998,  2, 13},
         {1998,  3, 13},
         {1998, 11, 13},
@@ -674,7 +673,7 @@ defmodule RecurTest do
         {2000, 10, 13},
         ])
 
-      results = RR.unfold(%{start_date: ~D[1997-09-02], frequency: :monthly, by_day: :friday, by_month_day: 13}) |> Enum.take(6)
+      results = RR.unfold(%{start_date: ~D[1997-09-02], frequency: :monthly, by_day: :friday, by_month_day: 13, exclude_date: ~D[1997-09-02]}) |> Enum.take(5)
       assert expected == results
     end
 
