@@ -1,7 +1,7 @@
 defmodule Recur.Days do
 
   alias Recur.Day
-  import Recur.Identity
+  import Function, only: [identity: 1]
 
   def in_month(date, func \\ &identity/1) do
     1..Date.days_in_month(date)
