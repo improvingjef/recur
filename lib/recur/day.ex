@@ -10,8 +10,8 @@ defmodule Recur.Day do
 
   def of_week(dow, week_start) when is_integer(dow) do
     base_dow = @week_days[week_start]
-    num = if dow < base_dow, do: 7 + dow - base_dow, else: dow - base_dow
-    rem(num, 7) + 1
+    num = if dow < base_dow, do: 7, else: 0
+    rem(num + dow - base_dow, 7) + 1
   end
 
   def of_week({_which, day}, week_start) when is_integer(day) or is_atom(day) do
@@ -76,7 +76,7 @@ defmodule Recur.Day do
   end
 
   def of_year(date) do
-    jan1 = %{date | month: 1, day: 1}
+    _jan1 = %{date | month: 1, day: 1}
     case date.month do
       1 -> date.day
       _ ->

@@ -62,11 +62,11 @@ defmodule DayTest do
   end
 
   test "matches with date and which week" do
-    assert Day.matches?(@first_sunday, {1,:sunday}, :monday)
-    assert Day.matches?(@first_sunday, {1,:sunday}, :tuesday)
-    assert Day.matches?(@first_sunday, {1,:sunday}, :wednesday)
-    assert Day.matches?(@first_sunday, {1,:sunday}, :thursday)
-    assert Day.matches?(@first_sunday, {1,:sunday}, :friday)
+    assert Day.matches?(@first_sunday, {1, :sunday}, :monday)
+    assert Day.matches?(@first_sunday, {1, :sunday}, :tuesday)
+    assert Day.matches?(@first_sunday, {1, :sunday}, :wednesday)
+    assert Day.matches?(@first_sunday, {1, :sunday}, :thursday)
+    assert Day.matches?(@first_sunday, {1, :sunday}, :friday)
   end
 
   test "which_day positive" do

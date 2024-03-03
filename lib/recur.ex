@@ -32,22 +32,21 @@ defmodule Recur do
       special expand for YEARLY.
   """
 
-  def unfold(%{frequency: frequency, by_week_no: _}) when frequency != :yearly,
-    do: raise ArgumentError, "by_week_no may only be specified with the :yearly frequency. Got #{frequency}."
+  def unfold(%{frequency: frequency, by_week_no: _})
+    when frequency != :yearly do
+    raise(ArgumentError, "by_week_no may only be specified with the :yearly frequency. Got #{frequency}.")
+  end
 
-  def unfold(%{count: _, until: _}),
-    do: raise ArgumentError, message: "recurrence rules may not contain both 'count' and 'until' values."
+  def unfold(%{count: _, until: _}) do
+    raise(ArgumentError, message: "recurrence rules may not contain both 'count' and 'until' values.")
+  end
 
-  def unfold(%{by_week_no: _}),
-    do: raise ArgumentError, message: "by_week_no is not currently supported."
+  def unfold(%{by_week_no: _}) do
+    raise(ArgumentError, message: "by_week_no is not currently supported.")
+  end
 
   def unfold(%{start_date: start_date} = rules) do
-    rules =
-      if Map.has_key?(rules, :week_start) do
-        rules
-      else
-        Map.put(rules, :week_start, :monday)
-      end
+    rules = Map.put_new(rules, :week_start, :monday)
 
     rules
     |> frequency()
@@ -103,8 +102,9 @@ defmodule Recur do
   def frequency(%{start_date: start_date, frequency: :daily}),
     do: Stream.unfold(start_date, fn date -> {date, Date.add(date, 1)} end)
 
-  def frequency(%{frequency: frequency}),
-    do: raise ArgumentError, "frequency #{frequency} is not supported."
+  def frequency(%{frequency: frequency}) do
+    raise(ArgumentError, "frequency #{frequency} is not supported.")
+  end
 
   def monthly(start_date) do
     1..12
@@ -247,8 +247,9 @@ defmodule Recur do
 
   def by(date, _, _), do: [date]
 
-  def limit(date, days, week_start),
-    do: if Enum.any?(days, & Day.matches?(date, &1, week_start)), do: [date], else: []
+  def limit(date, days, week_start) do
+    if Enum.any?(days, & Day.matches?(date, &1, week_start)), do: [date], else: []
+  end
 
   def map_month_day(day, days_in_month) when day < 0 do
     days_in_month + 1 + max(day, -days_in_month)
